@@ -133,9 +133,8 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
     await message.answer(
-        f"Привет, <b>{name}</b>!\n\n"
-        "Бот <b>OGE English Tracker</b>.\n"
-        "Открой трекер, прочитай инструкцию или оставь отзыв.",
+        f"Привет, <b>{name}</b>! 👋\n"
+        "Выбери действие на панели ниже:",
         reply_markup=main_keyboard(),
     )
 
