@@ -1,11 +1,13 @@
 """
-OGE English Tracker — бот для пользователей приложения.
-Отзывы только ADMIN_IDS. Уведомления ФИПИ пользователям не шлём.
+OGE English Tracker — бот для пользователей.
+Отзывы только ADMIN_IDS.
+На Render Web Service слушает PORT (health check), иначе Deploy failed.
 """
 
 import asyncio
 import logging
 import os
+from aiohttp import web
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
@@ -33,6 +35,7 @@ WEBAPP_URL = os.getenv(
     "WEBAPP_URL",
     "https://darianovet.github.io/oge-english-tracker/",
 )
+PORT = int(os.getenv("PORT", "10000"))
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -191,6 +194,10 @@ async def fallback(message: Message, state: FSMContext) -> None:
     await message.answer("Выбери кнопку внизу или /help.", reply_markup=main_keyboard())
 
 
+async def health_handler(request: web.Request) -> web.Response:
+    return web.Response(text="ok")
+
+
 async def main() -> None:
     if not BOT_TOKEN or BOT_TOKEN.startswith("ВСТАВЬ"):
         raise SystemExit("Укажи BOT_TOKEN")
@@ -218,6 +225,16 @@ async def main() -> None:
         F.text,
     )
     dp.message.register(fallback)
+
+    # HTTP для Render (чтобы не было Deploy failed)
+    app = web.Application()
+    app.router.add_get("/", health_handler)
+    app.router.add_get("/health", health_handler)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", PORT)
+    await site.start()
+    logger.info("HTTP health on port %s", PORT)
 
     logger.info("User bot started. ADMIN_IDS=%s", ADMIN_IDS)
     await dp.start_polling(bot)
