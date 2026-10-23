@@ -133,8 +133,13 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
     await message.answer(
-        f"Привет, <b>{name}</b>! 👋\n"
-        "Выбери действие на панели ниже:",
+        (
+            f"Привет, <b>{name}</b>! 👋\n\n"
+            "Рада, что ты здесь.\n"
+            "Путь к ОГЭ складывается из маленьких шагов — "
+            "и каждый из них можно отметить в трекере.\n\n"
+            "Выбери, с чего начать:"
+        ),
         reply_markup=main_keyboard(),
     )
 
